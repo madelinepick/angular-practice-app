@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var knex = require('../db');
+var bcrypt = require('bcrypt');
 
 /* GET users listing. */
 router.post('/signup', function(req, res, next) {
@@ -20,10 +21,30 @@ router.post('/signup', function(req, res, next) {
     .first()
     .then(function (result) {
       if(result.count === '0'){
+        const saltRounds = 4;
+           const passwordHash = bcrypt.hashSync(req.body.password, saltRounds);
+
+           knex('users')
+            .insert({
+              email: req.body.email,
+              name: req.body.name,
+              password_hash: passwordHash
+            })
+            .returning('*')
+            .then(function (users) {
+              const user = users[0];
+              res.json({
+                id: user.id,
+                email: user.email,
+                name: user.name
+              })
+            })
+          }
+      else{
         res.status(422).json({
           errors: ['Email has already been taken']
-      })
-    }
+        })
+      }
     })
   }
 });
