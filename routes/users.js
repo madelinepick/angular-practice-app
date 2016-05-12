@@ -1,7 +1,9 @@
-var express = require('express');
-var router = express.Router();
-var knex = require('../db');
-var bcrypt = require('bcrypt');
+const express = require('express');
+const router = express.Router();
+const knex = require('../db');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 
 /* GET users listing. */
 router.post('/signup', function(req, res, next) {
@@ -33,10 +35,12 @@ router.post('/signup', function(req, res, next) {
             .returning('*')
             .then(function (users) {
               const user = users[0];
+              const token = jwt.sign({id: user.id}, process.env.JWT_SECRET);
               res.json({
                 id: user.id,
                 email: user.email,
-                name: user.name
+                name: user.name,
+                token: token
               })
             })
           }
